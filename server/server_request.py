@@ -19,16 +19,19 @@ def cal_random_ddl(base_delay, var_delay):
 
 
 class ServerRequest:
-    def __init__(self, request_time, base_delay, var_delay, success_rate):
+    def __init__(self, request_time, server_config):
         self.request_time = request_time
-        self.base_delay = base_delay
-        self.var_delay = var_delay
+        self.base_delay = server_config.base_delay
+        self.var_delay = server_config.var_delay
+        self.success_rate = server_config.success_rate
         # predetermined end time
-        self.delay = cal_random_ddl(base_delay, var_delay)
+        self.delay = cal_random_ddl(self.base_delay, self.var_delay)
         self.end_time = request_time + self.delay
         # predetermined result
         self.end_status = (
-            Status.error if random.uniform(0, 1) > success_rate else Status.completed
+            Status.error
+            if random.uniform(0, 1) > self.success_rate
+            else Status.completed
         )
 
     def to_dict(self):
