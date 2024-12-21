@@ -19,7 +19,7 @@ cur_request = None
 
 
 @app.route("/request", methods=["POST"])
-def server_request():
+def server_job():
     # mimic sending the request
     global cur_request
     data = request.get_json()
@@ -34,6 +34,7 @@ def server_request():
         print(f"Set success rate: {server_config.success_rate}")
 
     cur_request = ServerRequest(time.time(), server_config)
+    print(f"Set the current job: \n{cur_request}")
     return jsonify({"result": cur_request.to_dict()})
 
 

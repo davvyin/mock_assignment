@@ -1,16 +1,15 @@
 from client import Client
 from tracer import Tracer
 from analysis import Analysis
+import logging
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[logging.StreamHandler()],
+)
 
-def get_request_delay(target: dict, tracer: Tracer):
-    if not tracer.request_end_time:
-        # the request still pending
-        return float("inf")
-    if tracer.request_start_time >= target["end_time"]:
-        # the get request is issued after the translation request finished
-        return 0
-    return tracer.request_end_time - target["end_time"]
+logger = logging.getLogger(__name__)
 
 
 def main():
@@ -21,18 +20,33 @@ def main():
         "http://127.0.0.1:5000/request", "http://127.0.0.1:5000/status", tracer
     )
 
-    # the send_request(base_delay, var_delay, success_rate(irrelavent to this exp))
-    cur_base_delay, cur_var_delay = 1, 5
-    init_interval, max_interval, timeout = 1, 10, float("inf")
-    exp_times = 10
-    while exp_times > 0:
-        target = my_client.send_request(cur_base_delay, cur_var_delay, None)
-        my_client.send_backoff_get_status(init_interval, max_interval, timeout)
-        analysis.add_entry(target, tracer)
-        exp_times -= 1
+    # the send_job(base_delay, var_delay, success_rate(irrelavent to this exp))
+    cur_base_delay, cur_var_delay = 1.5, 0.9
 
-    print(analysis.average_delay())
-    print(analysis.average_tries())
+    # the client side parameters
+    init_interval, max_interval, timeout, jitter_scale, approx_base_duration = (
+        0.1,
+        3,
+        float("inf"),
+        (1, 1),
+        1.5,
+    )
+    exp_times = 10
+    i = 1
+    # Testing
+    while i <= exp_times:
+        target = my_client.send_job(
+            cur_base_delay, cur_var_delay, None
+        )  # This to customize the job
+        my_client.send_backoff_get_status(
+            init_interval, max_interval, timeout, jitter_scale, approx_base_duration
+        )
+        analysis.add_entry(target, tracer)
+        # print(tracer.get_report())
+        logger.info(f"Exp number: {i}, Result: {tracer.get_report()}")
+        i += 1
+
+    print(analysis.get_report())
 
 
 if __name__ == "__main__":

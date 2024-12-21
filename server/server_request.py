@@ -15,7 +15,7 @@ class Status(Enum):
 
 # simulate random delay
 def cal_random_ddl(base_delay, var_delay):
-    return base_delay + random.randint(0, var_delay)
+    return base_delay + random.uniform(0, var_delay)
 
 
 class ServerRequest:
@@ -43,4 +43,4 @@ class ServerRequest:
         }
 
     def __str__(self):
-        return f"request_time: {self.request_time}\nend_time: {self.end_time}\nend_status: {self.end_status.name}\ndelay: {self.delay}"
+        return f"request_time: {self.request_time}\nend_time: {self.end_time}\nend_status: {self.end_status.name}\ndelay: {self.delay:.2f}"
